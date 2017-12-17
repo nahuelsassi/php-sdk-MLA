@@ -1,0 +1,50 @@
+<? php
+session_start ();
+requiere  ' ../Meli/meli.php ' ;
+requiere  ' ../configApp.php ' ;
+$ meli  =  new  Meli ( $ appId , $ secretKey );
+if ( $ _GET [ ' code ' ]) {
+	// Si el código estaba en get parameter, autorizamos
+	$ user  =  $ meli -> authorize ( $ _GET [ ' code ' ], $ redirectURI );
+	// Ahora creamos las sesiones con el usuario autenticado
+	$ _SESSION [ ' access_token ' ] =  $ user [ ' body ' ] -> access_token ;
+	$ _SESSION [ ' expires_in ' ] =  $ user [ ' body ' ] -> expires_in ;
+	$ _SESSION [ ' refresh_token ' ] =  $ user [ ' body ' ] -> refresh_token ;
+	// Podemos verificar si el token de acceso no válido verifica la hora
+	if ( $ _SESSION [ ' expires_in ' ] +  time () +  1  <  time ()) {
+		prueba {
+			print_r ( $ meli -> refreshAccessToken ());
+		} catch ( Exception  $ e ) {
+			echo  " Excepción: " ,   $ e -> getMessage (), " \ n " ;
+		}
+	}
+	// Construimos el elemento para POST
+	$ item  =  array (
+		" title "  =>  " Artículo De Teste - Por Favor, Não Ofertar! --kc: off " ,
+        " category_id "  =>  " MLB1227 " ,
+        " precio "  =>  10 ,
+        " currency_id "  =>  " BRL " ,
+        " disponible_quantidad "  =>  1 ,
+        " buying_mode "  =>  " buy_it_now " ,
+        " listing_type_id "  =>  " bronce " ,
+        " condición "  =>  " nuevo " ,
+        " description "  =>  " Item de Teste. PHP SDK de Mercado Livre. " ,
+        " video_id "  =>  " RXWn6kftTHY " ,
+        " garantía "  =>  " 12 meses " ,
+        " imágenes "  =>  matriz (
+            array (
+                " fuente "  =>  " https://upload.wikimedia.org/wikipedia/commons/f/fd/Ray_Ban_Original_Wayfarer.jpg "
+            ),
+            array (
+                " fuente "  =>  " https://upload.wikimedia.org/wikipedia/commons/a/ab/Teashades.gif "
+            )
+        )
+    );
+	
+	// Llamamos a la solicitud de publicación para enumerar un artículo
+	echo  ' <pre> ' ;
+	print_r ( $ meli -> post ( ' / items ' , $ item , array ( ' access_token '  =>  $ _SESSION [ ' access_token ' ])));
+	echo  ' </ pre> ' ;
+} else {
+	eco  '<a href="'  $meli -> getAuthUrl ( $ redirectURI , Meli :: $ AUTH_URL [ ' MLB ' ]) . ' "> MercadoLibre inicia sesión usando OAuth 2.0 </a> ' ;  
+}
